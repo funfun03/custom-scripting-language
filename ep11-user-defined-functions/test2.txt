@@ -1,0 +1,8 @@
+// Function with return
+fn addNumbers(a, b) {
+    return a + b
+}
+
+let num1 = 5;
+let num2 = 10;
+print(addNumbers(num1, num2));

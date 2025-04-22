@@ -22,17 +22,31 @@ function eval_numeric_binary_expr(
 	operator: string
 ): NumberVal {
 	let result: number;
-	if (operator == "+") {
+	if (operator === "+") {
 		result = lhs.value + rhs.value;
-	} else if (operator == "-") {
+	} else if (operator === "-") {
 		result = lhs.value - rhs.value;
-	} else if (operator == "*") {
+	} else if (operator === "*") {
 		result = lhs.value * rhs.value;
-	} else if (operator == "/") {
+	} else if (operator === "/") {
 		// TODO: Division by zero checks
 		result = lhs.value / rhs.value;
-	} else {
+	} else if (operator === "%") {
 		result = lhs.value % rhs.value;
+	} else if (operator === ">") {
+		result = lhs.value > rhs.value ? 1 : 0;
+	} else if (operator === "<") {
+		result = lhs.value < rhs.value ? 1 : 0;
+	} else if (operator === ">=") {
+		result = lhs.value >= rhs.value ? 1 : 0;
+	} else if (operator === "<=") {
+		result = lhs.value <= rhs.value ? 1 : 0;
+	} else if (operator === "==") {
+		result = lhs.value === rhs.value ? 1 : 0;
+	} else if (operator === "!=") {
+		result = lhs.value !== rhs.value ? 1 : 0;
+	} else {
+		throw `Unsupported operator: ${operator}`;
 	}
 
 	return { value: result, type: "number" };

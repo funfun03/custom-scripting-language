@@ -4,9 +4,14 @@ export type ValueType =
 	| "null"
 	| "number"
 	| "boolean"
+	| "string"
+	| "array"
 	| "object"
 	| "native-fn"
-	| "function";
+	| "function"
+	| "break"
+	| "continue"
+	| "return";
 
 export interface RuntimeVal {
 	type: ValueType;
@@ -69,4 +74,39 @@ export interface FunctionValue extends RuntimeVal {
 	parameters: string[];
 	declarationEnv: Environment;
 	body: Stmt[];
+}
+
+export interface StringVal extends RuntimeVal {
+	type: "string";
+	value: string;
+}
+
+export function MK_STRING(s = "") {
+	return { type: "string", value: s } as StringVal;
+}
+
+export interface ArrayVal extends RuntimeVal {
+	type: "array";
+	elements: RuntimeVal[];
+}
+
+export function MK_ARRAY(elements: RuntimeVal[] = []) {
+	return { type: "array", elements } as ArrayVal;
+}
+
+export interface ControlFlowVal extends RuntimeVal {
+	type: "break" | "continue" | "return";
+	value?: RuntimeVal;
+}
+
+export function MK_BREAK(): ControlFlowVal {
+	return { type: "break" } as ControlFlowVal;
+}
+
+export function MK_CONTINUE(): ControlFlowVal {
+	return { type: "continue" } as ControlFlowVal;
+}
+
+export function MK_RETURN(value?: RuntimeVal): ControlFlowVal {
+	return { type: "return", value } as ControlFlowVal;
 }

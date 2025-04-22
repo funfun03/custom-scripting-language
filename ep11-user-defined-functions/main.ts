@@ -2,7 +2,7 @@ import Parser from "./frontend/parser.ts";
 import { createGlobalEnv } from "./runtime/environment.ts";
 import { evaluate } from "./runtime/interpreter.ts";
 
-run("./test.txt");
+run("./test2.txt");
 
 async function run(filename: string) {
 	const parser = new Parser();

@@ -8,11 +8,19 @@
 export enum TokenType {
 	// Literal Types
 	Number,
+	String,
 	Identifier,
 	// Keywords
 	Let,
 	Const,
 	Fn, // fn
+	If,
+	Else,
+	While,
+	For,
+	Return,
+	Break,
+	Continue,
 
 	// Grouping * Operators
 	BinaryOperator,
@@ -37,6 +45,13 @@ const KEYWORDS: Record<string, TokenType> = {
 	let: TokenType.Let,
 	const: TokenType.Const,
 	fn: TokenType.Fn,
+	if: TokenType.If,
+	else: TokenType.Else,
+	while: TokenType.While,
+	for: TokenType.For,
+	return: TokenType.Return,
+	break: TokenType.Break,
+	continue: TokenType.Continue,
 };
 
 // Reoresents a single token from the source-code.
@@ -82,10 +97,34 @@ function isint(str: string) {
  */
 export function tokenize(sourceCode: string): Token[] {
 	const tokens = new Array<Token>();
-	const src = sourceCode.split("");
+	const src: string[] = sourceCode.split("");
 
 	// produce tokens until the EOF is reached.
 	while (src.length > 0) {
+		// Handle comments
+		if (src[0] === "/" && src.length > 1 && src[1] === "/") {
+			// Single line comment
+			while (src.length > 0 && src[0] !== "\n") {
+				src.shift();
+			}
+			if (src.length > 0) {
+				src.shift(); // consume the newline
+			}
+			continue;
+		}
+
+		// Handle string literals
+		if (src[0] === '"' || src[0] === "'") {
+			const quote = src.shift();
+			let str = "";
+			while (src.length > 0 && src[0] !== quote) {
+				str += src.shift();
+			}
+			src.shift(); // consume closing quote
+			tokens.push(token(str, TokenType.String));
+			continue;
+		}
+
 		// BEGIN PARSING ONE CHARACTER TOKENS
 		if (src[0] == "(") {
 			tokens.push(token(src.shift(), TokenType.OpenParen));
@@ -101,15 +140,32 @@ export function tokenize(sourceCode: string): Token[] {
 			tokens.push(token(src.shift(), TokenType.CloseBracket));
 		} // HANDLE BINARY OPERATORS
 		else if (
-			src[0] == "+" ||
-			src[0] == "-" ||
-			src[0] == "*" ||
-			src[0] == "/" ||
-			src[0] == "%"
+			src[0] === "+" ||
+			src[0] === "-" ||
+			src[0] === "*" ||
+			src[0] === "/" ||
+			src[0] === "%" ||
+			src[0] === ">" ||
+			src[0] === "<" ||
+			src[0] === "!"
 		) {
-			tokens.push(token(src.shift(), TokenType.BinaryOperator));
+			// Handle comparison operators
+			if ((src[0] === ">" || src[0] === "<" || src[0] === "!") && src.length > 1) {
+				if (src[1] === "=") {
+					const firstChar = src.shift();
+					const secondChar = src.shift();
+					if (firstChar && secondChar) {
+						tokens.push(token(firstChar + secondChar, TokenType.BinaryOperator));
+						continue;
+					}
+				}
+			}
+			const op = src.shift();
+			if (op) {
+				tokens.push(token(op, TokenType.BinaryOperator));
+			}
 		} // Handle Conditional & Assignment Tokens
-		else if (src[0] == "=") {
+		else if (src[0] === "=") {
 			tokens.push(token(src.shift(), TokenType.Equals));
 		} else if (src[0] == ";") {
 			tokens.push(token(src.shift(), TokenType.Semicolon));
@@ -133,7 +189,7 @@ export function tokenize(sourceCode: string): Token[] {
 			} // Handle Identifier & Keyword Tokens.
 			else if (isalpha(src[0])) {
 				let ident = "";
-				while (src.length > 0 && isalpha(src[0])) {
+				while (src.length > 0 && (isalpha(src[0]) || isint(src[0]))) {
 					ident += src.shift();
 				}
 
