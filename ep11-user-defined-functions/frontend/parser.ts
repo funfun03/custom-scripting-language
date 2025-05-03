@@ -25,12 +25,21 @@ import {
 } from "./ast.ts";
 
 import { Token, tokenize, TokenType } from "./lexer.ts";
+import { ParserInterface, ParserType } from "./parser_interface.ts";
+import { LLParser } from "./ll_parser/ll_parser.ts";
+import { grammar } from "./ll_parser/grammar_utils.ts";
+import { createEnhancedLLParser } from "./enhanced_ll_parser/index.ts";
 
 /**
  * Frontend for producing a valid AST from sourcode
  */
-export default class Parser {
+export default class Parser implements ParserInterface {
+	private parserType: ParserType;
 	private tokens: Token[] = [];
+
+	constructor(parserType: ParserType = ParserType.RecursiveDescent) {
+		this.parserType = parserType;
+	}
 
 	/*
 	 * Determines if the parsing is complete and the END OF FILE Is reached.
@@ -77,6 +86,24 @@ export default class Parser {
 
 	public produceAST(sourceCode: string): Program {
 		this.tokens = tokenize(sourceCode);
+		return this.parse(this.tokens);
+	}
+
+	public parse(tokens: Token[]): Program {
+		switch (this.parserType) {
+			case ParserType.RecursiveDescent:
+				return this.parseRecursiveDescent(tokens);
+			case ParserType.LL:
+				return this.parseLL(tokens);
+			case ParserType.EnhancedLL:
+				return this.parseEnhancedLL(tokens);
+			default:
+				throw new Error(`Unknown parser type: ${this.parserType}`);
+		}
+	}
+
+	private parseRecursiveDescent(tokens: Token[]): Program {
+		this.tokens = tokens;
 		const program: Program = {
 			kind: "Program",
 			body: [],
@@ -88,6 +115,28 @@ export default class Parser {
 		}
 
 		return program;
+	}
+
+	private parseLL(tokens: Token[]): Program {
+		const llParser = new LLParser(tokens, grammar);
+		try {
+			return llParser.parse();
+		} catch (error) {
+			console.log("LL parsing failed, falling back to Recursive Descent parser", error);
+			// Fall back to recursive descent parser
+			return this.parseRecursiveDescent(tokens);
+		}
+	}
+
+	private parseEnhancedLL(tokens: Token[]): Program {
+		const enhancedLLParser = createEnhancedLLParser();
+		try {
+			return enhancedLLParser.parse(tokens);
+		} catch (error) {
+			console.log("Enhanced LL parsing failed, falling back to Recursive Descent parser", error);
+			// Fall back to recursive descent parser
+			return this.parseRecursiveDescent(tokens);
+		}
 	}
 
 	// Handle complex statement types
@@ -110,6 +159,8 @@ export default class Parser {
 				return this.parse_break_stmt();
 			case TokenType.Continue:
 				return this.parse_continue_stmt();
+			case TokenType.Print:
+				return this.parse_print_stmt();
 			default:
 				const expr = this.parse_expr();
 				// Only expect semicolon if the next token is not a closing brace
@@ -121,6 +172,42 @@ export default class Parser {
 					expression: expr
 				} as ExpressionStatement;
 		}
+	}
+
+	// Handle print statement for the recursive descent parser
+	private parse_print_stmt(): Stmt {
+		// Consume the 'print' token
+		this.eat();
+		
+		// Expect the opening parenthesis
+		this.expect(TokenType.OpenParen, "Expected '(' after 'print'");
+		
+		// Parse the expression inside the print statement
+		const printExpr = this.parse_expr();
+		
+		// Expect the closing parenthesis
+		this.expect(TokenType.CloseParen, "Expected ')' after expression in print statement");
+		
+		// Only expect semicolon if the next token is not a closing brace
+		if (this.at().type !== TokenType.CloseBrace) {
+			this.expect(TokenType.Semicolon, "Expected ';' after print statement");
+		}
+		
+		// Create a call expression for print
+		const callExpr: CallExpr = {
+			kind: "CallExpr",
+			caller: {
+				kind: "Identifier",
+				symbol: "print"
+			} as Identifier,
+			args: [printExpr]
+		};
+		
+		// Return as an expression statement
+		return {
+			kind: "ExpressionStatement",
+			expression: callExpr
+		} as ExpressionStatement;
 	}
 
 	parse_fn_declaration(): Stmt {

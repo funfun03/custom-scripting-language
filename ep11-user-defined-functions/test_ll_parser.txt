@@ -1,0 +1,9 @@
+// Simple expression
+5 + 10;
+
+// Simple print
+print(42);
+
+// Simple assignment
+x = 20;
+

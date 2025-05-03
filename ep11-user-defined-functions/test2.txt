@@ -1,8 +1,6 @@
-// Function with return
-fn addNumbers(a, b) {
-    return a + b
+// If statement
+if (8 > 0) {
+    print("True")
+} else {
+    print("False")
 }
-
-let num1 = 5;
-let num2 = 10;
-print(addNumbers(num1, num2));

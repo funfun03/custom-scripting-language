@@ -18,7 +18,7 @@ export function createGlobalEnv() {
 		"print",
 		MK_NATIVE_FN((args, scope) => {
 			console.log(...args);
-			return MK_NULL();
+			return args.length > 0 ? args[0] : MK_NULL();
 		}),
 		true
 	);

@@ -1,0 +1,9 @@
+// Test print statements
+print(42);
+print("Hello, world!");
+print(5 + 10);
+
+// Test with variables
+x = 100;
+print(x);
+print(x * 2); 

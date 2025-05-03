@@ -1,0 +1,8 @@
+// Simple expressions both parsers can handle
+5 + 10;
+
+// Variable assignment
+x = 20;
+
+// Expression with variable
+x + 15; 

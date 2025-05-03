@@ -1,10 +1,3 @@
-// https://github.com/tlaceby/guide-to-interpreters-series
-// -----------------------------------------------------------
-// ---------------          LEXER          -------------------
-// ---  Responsible for producing tokens from the source   ---
-// -----------------------------------------------------------
-
-// Represents tokens that our language understands in parsing.
 export enum TokenType {
 	// Literal Types
 	Number,
@@ -21,6 +14,7 @@ export enum TokenType {
 	Return,
 	Break,
 	Continue,
+	Print, // Added print keyword
 
 	// Grouping * Operators
 	BinaryOperator,
@@ -52,6 +46,7 @@ const KEYWORDS: Record<string, TokenType> = {
 	return: TokenType.Return,
 	break: TokenType.Break,
 	continue: TokenType.Continue,
+	print: TokenType.Print, // Added print keyword
 };
 
 // Reoresents a single token from the source-code.

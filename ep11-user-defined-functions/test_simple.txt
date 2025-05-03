@@ -1,0 +1,6 @@
+// Very simple test
+let x = 10;
+x;
+
+5 + 10;
+20 * 3; 
